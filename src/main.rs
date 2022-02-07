@@ -19,6 +19,7 @@ mod responder;
 
 use std::ops::Deref;
 use std::str::FromStr;
+use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 
@@ -39,10 +40,15 @@ struct AppArgs {
     config: String,
 }
 
+pub struct DisabledServices {
+    disabled_services: Mutex<Vec<String>>,
+}
+
 pub static THREAD_NAME_PROBER_POLL: &'static str = "vigil-prober-poll";
 pub static THREAD_NAME_PROBER_SCRIPT: &'static str = "vigil-prober-script";
 pub static THREAD_NAME_AGGREGATOR: &'static str = "vigil-aggregator";
 pub static THREAD_NAME_RESPONDER: &'static str = "vigil-responder";
+// pub static DISABLED_SERVICES: Vec<String> = Vec::new();
 
 macro_rules! gen_spawn_managed {
     ($name:expr, $method:ident, $thread_name:ident, $managed_fn:ident) => {
@@ -73,6 +79,7 @@ macro_rules! gen_spawn_managed {
     };
 }
 
+// Strings and stuff
 lazy_static! {
     static ref APP_ARGS: AppArgs = make_app_args();
     static ref APP_CONF: Config = ConfigReader::make();

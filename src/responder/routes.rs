@@ -5,7 +5,7 @@
 // License: Mozilla Public License v2.0 (MPL v2.0)
 
 use actix_files::NamedFile;
-use actix_web::{get, web, web::Data, web::Json, HttpResponse};
+use actix_web::{get, web, web::Data, web::Json, HttpResponse, post};
 use tera::Tera;
 
 use super::context::{IndexContext, INDEX_CONFIG, INDEX_ENVIRONMENT};
@@ -16,6 +16,8 @@ use crate::prober::report::{
     handle_load as handle_load_report, HandleFlushError, HandleHealthError, HandleLoadError,
 };
 use crate::APP_CONF;
+
+use crate::DisabledServices;
 
 #[get("/")]
 async fn index(tera: Data<Tera>) -> HttpResponse {
@@ -84,6 +86,24 @@ async fn assets_stylesheets(web::Path(file): web::Path<String>) -> Option<NamedF
 #[get("/assets/javascripts/{file}")]
 async fn assets_javascripts(web::Path(file): web::Path<String>) -> Option<NamedFile> {
     NamedFile::open(APP_CONF.assets.path.join("javascripts").join(file)).ok()
+}
+
+#[post("/service/disable/{service_name}")]
+async fn disable_service(web::Path(service_name): web::Path<String>, data: web::Data<DisabledServices>) -> String {
+    let mut disabled_services = data.disabled_services.lock().unwrap();
+    if !disabled_services.contains(&service_name) {
+        disabled_services.push(service_name)
+     }
+    format!("Request number: {:?}", disabled_services) // <- response with count
+}
+
+#[post("/service/enable/{service_name}")]
+async fn enable_service(web::Path(service_name): web::Path<String>, data: web::Data<DisabledServices>) -> String {
+    let mut disabled_services = data.disabled_services.lock().unwrap();
+    if disabled_services.contains(&service_name) {
+        disabled_services.retain(|x| x != &service_name);
+     }
+    format!("Request number: {:?}", disabled_services) // <- response with count
 }
 
 // Notice: reporter report route is managed in manager due to authentication needs

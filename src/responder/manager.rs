@@ -21,9 +21,15 @@ use tera::Tera;
 
 use super::routes;
 use crate::APP_CONF;
+use crate::DisabledServices;
+use std::sync::Mutex;
 
 pub fn run() {
     let mut runtime = rt::System::new("responder");
+
+    let disabled_services = web::Data::new(DisabledServices {
+        disabled_services: Mutex::new(Vec::new()),
+    });
 
     let templates: String = APP_CONF
         .assets
@@ -44,7 +50,10 @@ pub fn run() {
             .data(tera.clone())
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
             .service(routes::assets_javascripts)
+            .service(routes::disable_service)
+            .service(routes::enable_service)
             .service(routes::assets_stylesheets)
+            .app_data(disabled_services.clone())
             .service(routes::assets_images)
             .service(routes::assets_fonts)
             .service(routes::badge)
