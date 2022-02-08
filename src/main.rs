@@ -19,7 +19,6 @@ mod responder;
 
 use std::ops::Deref;
 use std::str::FromStr;
-use std::sync::Mutex;
 use std::thread;
 use std::time::Duration;
 
@@ -38,10 +37,6 @@ use crate::responder::manager::run as run_responder;
 
 struct AppArgs {
     config: String,
-}
-
-pub struct DisabledServices {
-    disabled_services: Mutex<Vec<String>>,
 }
 
 pub static THREAD_NAME_PROBER_POLL: &'static str = "vigil-prober-poll";

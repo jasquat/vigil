@@ -33,6 +33,8 @@ use crate::prober::manager::STORE as PROBER_STORE;
 use crate::prober::mode::Mode;
 use crate::APP_CONF;
 
+use std::collections::HashSet;
+
 const PROBE_HOLD_MILLISECONDS: u64 = 250;
 const PROBE_ICMP_TIMEOUT_SECONDS: u64 = 1;
 
@@ -46,6 +48,7 @@ lazy_static! {
                 reminder_backoff_counter: 1,
             }
         },
+        disabled_services: HashSet::new(),
         notified: None,
     }));
     static ref PROBE_HTTP_CLIENT: Client = Client::builder()
@@ -66,6 +69,7 @@ struct RabbitMQAPIQueueResponse {
 pub struct Store {
     pub states: ServiceStates,
     pub notified: Option<SystemTime>,
+    pub disabled_services: HashSet<String>,
 }
 
 enum DispatchMode<'a> {
@@ -106,27 +110,30 @@ fn map_poll_replicas() -> Vec<(
 
     // Acquire states
     let states = &PROBER_STORE.read().unwrap().states;
+    let disabled_services = &PROBER_STORE.read().unwrap().disabled_services;
 
     // Map replica URLs to be probed
     for (probe_id, probe) in states.probes.iter() {
-        for (node_id, node) in probe.nodes.iter() {
-            if node.mode == Mode::Poll {
-                for (replica_id, replica) in node.replicas.iter() {
-                    if let Some(ref replica_url) = replica.url {
-                        // Clone values to scan; this ensure the write lock is not held while \
-                        //   the replica scan is performed. As this whole operation can take time, \
-                        //   it could lock all the pipelines depending on the shared store data \
-                        //   (eg. the reporter HTTP API).
-                        replica_list.push((
-                            probe_id.to_owned(),
-                            node_id.to_owned(),
-                            replica_id.to_owned(),
-                            replica_url.to_owned(),
-                            node.http_headers.to_owned(),
-                            node.http_method.to_owned(),
-                            node.http_body.to_owned(),
-                            node.http_body_healthy_match.to_owned(),
-                        ));
+        if !disabled_services.contains(probe_id) {
+            for (node_id, node) in probe.nodes.iter() {
+                if node.mode == Mode::Poll {
+                    for (replica_id, replica) in node.replicas.iter() {
+                        if let Some(ref replica_url) = replica.url {
+                            // Clone values to scan; this ensure the write lock is not held while \
+                            //   the replica scan is performed. As this whole operation can take time, \
+                            //   it could lock all the pipelines depending on the shared store data \
+                            //   (eg. the reporter HTTP API).
+                            replica_list.push((
+                                probe_id.to_owned(),
+                                node_id.to_owned(),
+                                replica_id.to_owned(),
+                                replica_url.to_owned(),
+                                node.http_headers.to_owned(),
+                                node.http_method.to_owned(),
+                                node.http_body.to_owned(),
+                                node.http_body_healthy_match.to_owned(),
+                            ));
+                        }
                     }
                 }
             }
@@ -141,21 +148,24 @@ fn map_script_replicas() -> Vec<(String, String, String, String)> {
 
     // Acquire states
     let states = &PROBER_STORE.read().unwrap().states;
+    let disabled_services = &PROBER_STORE.read().unwrap().disabled_services;
 
     // Map scripts to be probed
     for (probe_id, probe) in states.probes.iter() {
-        for (node_id, node) in probe.nodes.iter() {
-            if node.mode == Mode::Script {
-                for (replica_id, replica) in node.replicas.iter() {
-                    if let Some(ref replica_script) = replica.script {
-                        // Clone values to scan; this ensure the write lock is not held while \
-                        //   the script execution is performed. Same as in `map_poll_replicas()`.
-                        replica_list.push((
-                            probe_id.to_owned(),
-                            node_id.to_owned(),
-                            replica_id.to_owned(),
-                            replica_script.to_owned(),
-                        ));
+        if !disabled_services.contains(probe_id) {
+            for (node_id, node) in probe.nodes.iter() {
+                if node.mode == Mode::Script {
+                    for (replica_id, replica) in node.replicas.iter() {
+                        if let Some(ref replica_script) = replica.script {
+                            // Clone values to scan; this ensure the write lock is not held while \
+                            //   the script execution is performed. Same as in `map_poll_replicas()`.
+                            replica_list.push((
+                                probe_id.to_owned(),
+                                node_id.to_owned(),
+                                replica_id.to_owned(),
+                                replica_script.to_owned(),
+                            ));
+                        }
                     }
                 }
             }

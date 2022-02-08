@@ -17,8 +17,6 @@ use crate::prober::report::{
 };
 use crate::APP_CONF;
 
-use crate::DisabledServices;
-
 #[get("/")]
 async fn index(tera: Data<Tera>) -> HttpResponse {
     // Notice acquire lock in a block to release it ASAP (ie. before template renders)
@@ -89,21 +87,35 @@ async fn assets_javascripts(web::Path(file): web::Path<String>) -> Option<NamedF
 }
 
 #[post("/service/disable/{service_name}")]
-async fn disable_service(web::Path(service_name): web::Path<String>, data: web::Data<DisabledServices>) -> String {
-    let mut disabled_services = data.disabled_services.lock().unwrap();
-    if !disabled_services.contains(&service_name) {
-        disabled_services.push(service_name)
-     }
-    format!("Request number: {:?}", disabled_services) // <- response with count
+async fn disable_service(web::Path(service_name): web::Path<String>) -> String {
+    let mut found_it = false;
+    let store = &mut PROBER_STORE.write().unwrap();
+    let states = &store.states;
+
+    for (probe_id, _probe) in states.probes.iter() {
+        if probe_id == &service_name {
+            found_it = true;
+        }
+    }
+
+    if found_it == false {
+        format!("Could not find service named '{}'", service_name)
+    } else {
+        let disabled_services = &mut store.disabled_services;
+        disabled_services.insert(service_name);
+        format!("{:?}", disabled_services)
+    }
 }
 
 #[post("/service/enable/{service_name}")]
-async fn enable_service(web::Path(service_name): web::Path<String>, data: web::Data<DisabledServices>) -> String {
-    let mut disabled_services = data.disabled_services.lock().unwrap();
+async fn enable_service(web::Path(service_name): web::Path<String>) -> String {
+	let disabled_services = &mut PROBER_STORE.write().unwrap().disabled_services;
     if disabled_services.contains(&service_name) {
-        disabled_services.retain(|x| x != &service_name);
-     }
-    format!("Request number: {:?}", disabled_services) // <- response with count
+        disabled_services.remove(&service_name);
+        format!("{:?}", disabled_services)
+    } else {
+        format!("ERROR: Could not find disabled service: {:?}", service_name)
+    }
 }
 
 // Notice: reporter report route is managed in manager due to authentication needs
