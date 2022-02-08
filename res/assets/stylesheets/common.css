@@ -243,6 +243,27 @@ a:hover {
   border-color: rgba(241, 128, 0, 0.17);
 }
 
+.badge-status-disabled.badge-default {
+  background-image: url("/assets/images/badges/icon-disabled-default.svg");
+}
+
+.status-disabled-background,
+.status-disabled-background-before:before {
+  background-color: #A9A9A9;
+}
+
+.status-disabled-color {
+  color: #A9A9A9;
+}
+
+.status-disabled-background-subtle {
+  background-color: rgba(169, 169, 169, 0.08);
+}
+
+.status-disabled-border-subtle {
+  border-color: rgba(169, 169, 169, 0.10);
+}
+
 .badge-status-dead.badge-default {
   background-image: url("/assets/images/badges/icon-dead-default.svg");
 }

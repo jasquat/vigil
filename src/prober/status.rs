@@ -14,6 +14,9 @@ pub enum Status {
 
     #[serde(rename = "dead")]
     Dead,
+
+    #[serde(rename = "disabled")]
+    Disabled,
 }
 
 impl Status {
@@ -22,6 +25,7 @@ impl Status {
             &Status::Healthy => "healthy",
             &Status::Sick => "sick",
             &Status::Dead => "dead",
+            &Status::Disabled => "disabled",
         }
     }
 
@@ -30,6 +34,7 @@ impl Status {
             &Status::Dead => "\u{274c}",
             &Status::Sick => "\u{26a0}",
             &Status::Healthy => "\u{2705}",
+            &Status::Disabled => "\u{1F6A7}",
         }
     }
 }

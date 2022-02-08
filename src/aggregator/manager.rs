@@ -204,17 +204,19 @@ fn scan_and_bump_states() -> Option<BumpedStates> {
             node.status = node_status;
         }
 
-        // Bump general status with worst node status?
-        if let Some(worst_status) = check_child_status(&general_status, &probe_status) {
-            general_status = worst_status;
-        }
-
         debug!(
             "aggregated status for probe: {} => {:?}",
             probe_id, probe_status
         );
 
-        probe.status = probe_status;
+        if probe.status != Status::Disabled {
+            // Bump general status with worst node status?
+            if let Some(worst_status) = check_child_status(&general_status, &probe_status) {
+                general_status = worst_status;
+            }
+
+            probe.status = probe_status;
+        }
     }
 
     // Check if general status has changed

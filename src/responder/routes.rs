@@ -16,6 +16,7 @@ use crate::prober::report::{
     handle_load as handle_load_report, HandleFlushError, HandleHealthError, HandleLoadError,
 };
 use crate::APP_CONF;
+use crate::prober::status::Status;
 
 #[get("/")]
 async fn index(tera: Data<Tera>) -> HttpResponse {
@@ -91,11 +92,14 @@ pub async fn disable_service(web::Path(service_name): web::Path<String>) -> Http
     let store = &mut PROBER_STORE.write().unwrap();
     let states = &store.states;
 
-    for (probe_id, _probe) in states.probes.iter() {
-        if probe_id == &service_name {
-            found_it = true;
-        }
-    }
+    // for (probe_id, probe) in states.probes.iter() {
+    //     if probe_id == &service_name {
+            if let Some(ref mut probe) = store.states.probes.get_mut(&service_name) {
+                probe.status = Status::Disabled;
+                found_it = true;
+            }
+    //     }
+    // }
 
     if found_it == false {
         HttpResponse::BadRequest().body(format!("Could not find service named '{}'", service_name))
@@ -107,7 +111,14 @@ pub async fn disable_service(web::Path(service_name): web::Path<String>) -> Http
 }
 
 pub async fn enable_service(web::Path(service_name): web::Path<String>) -> HttpResponse {
-	let disabled_services = &mut PROBER_STORE.write().unwrap().disabled_services;
+    let store = &mut PROBER_STORE.write().unwrap();
+    let states = &store.states;
+
+    if let Some(ref mut probe) = store.states.probes.get_mut(&service_name) {
+        probe.status = Status::Healthy;
+    }
+
+    let disabled_services = &mut store.disabled_services;
     if disabled_services.contains(&service_name) {
         disabled_services.remove(&service_name);
         HttpResponse::Ok().body(format!("{:?}", disabled_services))
