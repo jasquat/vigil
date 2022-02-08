@@ -86,7 +86,7 @@ async fn assets_javascripts(web::Path(file): web::Path<String>) -> Option<NamedF
     NamedFile::open(APP_CONF.assets.path.join("javascripts").join(file)).ok()
 }
 
-pub async fn disable_service(web::Path(service_name): web::Path<String>) -> String {
+pub async fn disable_service(web::Path(service_name): web::Path<String>) -> HttpResponse {
     let mut found_it = false;
     let store = &mut PROBER_STORE.write().unwrap();
     let states = &store.states;
@@ -98,21 +98,21 @@ pub async fn disable_service(web::Path(service_name): web::Path<String>) -> Stri
     }
 
     if found_it == false {
-        format!("Could not find service named '{}'", service_name)
+        HttpResponse::BadRequest().body(format!("Could not find service named '{}'", service_name))
     } else {
         let disabled_services = &mut store.disabled_services;
         disabled_services.insert(service_name);
-        format!("{:?}", disabled_services)
+        HttpResponse::Ok().body(format!("{:?}", disabled_services))
     }
 }
 
-pub async fn enable_service(web::Path(service_name): web::Path<String>) -> String {
+pub async fn enable_service(web::Path(service_name): web::Path<String>) -> HttpResponse {
 	let disabled_services = &mut PROBER_STORE.write().unwrap().disabled_services;
     if disabled_services.contains(&service_name) {
         disabled_services.remove(&service_name);
-        format!("{:?}", disabled_services)
+        HttpResponse::Ok().body(format!("{:?}", disabled_services))
     } else {
-        format!("ERROR: Could not find disabled service: {:?}", service_name)
+        HttpResponse::BadRequest().body(format!("ERROR: Could not find disabled service: {:?}", service_name))
     }
 }
 
