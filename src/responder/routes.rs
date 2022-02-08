@@ -88,42 +88,26 @@ async fn assets_javascripts(web::Path(file): web::Path<String>) -> Option<NamedF
 }
 
 pub async fn disable_service(web::Path(service_name): web::Path<String>) -> HttpResponse {
-    let mut found_it = false;
     let store = &mut PROBER_STORE.write().unwrap();
-    let states = &store.states;
-
-    // for (probe_id, probe) in states.probes.iter() {
-    //     if probe_id == &service_name {
-            if let Some(ref mut probe) = store.states.probes.get_mut(&service_name) {
-                probe.status = Status::Disabled;
-                found_it = true;
-            }
-    //     }
-    // }
-
-    if found_it == false {
-        HttpResponse::BadRequest().body(format!("Could not find service named '{}'", service_name))
+    if let Some(ref mut probe) = store.states.probes.get_mut(&service_name) {
+        probe.status = Status::Disabled;
+        HttpResponse::Ok().finish()
     } else {
-        let disabled_services = &mut store.disabled_services;
-        disabled_services.insert(service_name);
-        HttpResponse::Ok().body(format!("{:?}", disabled_services))
+        HttpResponse::BadRequest().body(format!("Could not find service named '{}'", service_name))
     }
 }
 
 pub async fn enable_service(web::Path(service_name): web::Path<String>) -> HttpResponse {
     let store = &mut PROBER_STORE.write().unwrap();
-    let states = &store.states;
-
     if let Some(ref mut probe) = store.states.probes.get_mut(&service_name) {
-        probe.status = Status::Healthy;
-    }
-
-    let disabled_services = &mut store.disabled_services;
-    if disabled_services.contains(&service_name) {
-        disabled_services.remove(&service_name);
-        HttpResponse::Ok().body(format!("{:?}", disabled_services))
+        if probe.status == Status::Disabled {
+            probe.status = Status::Healthy;
+            HttpResponse::Ok().finish()
+        } else {
+            HttpResponse::BadRequest().body(format!("ERROR: Service is not currently disabled: {:?}", service_name))
+        }
     } else {
-        HttpResponse::BadRequest().body(format!("ERROR: Could not find disabled service: {:?}", service_name))
+        HttpResponse::BadRequest().body(format!("Could not find service named '{}'", service_name))
     }
 }
 

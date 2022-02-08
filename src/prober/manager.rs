@@ -33,8 +33,6 @@ use crate::prober::manager::STORE as PROBER_STORE;
 use crate::prober::mode::Mode;
 use crate::APP_CONF;
 
-use std::collections::HashSet;
-
 const PROBE_HOLD_MILLISECONDS: u64 = 250;
 const PROBE_ICMP_TIMEOUT_SECONDS: u64 = 1;
 
@@ -48,7 +46,6 @@ lazy_static! {
                 reminder_backoff_counter: 1,
             }
         },
-        disabled_services: HashSet::new(),
         notified: None,
     }));
     static ref PROBE_HTTP_CLIENT: Client = Client::builder()
@@ -69,7 +66,6 @@ struct RabbitMQAPIQueueResponse {
 pub struct Store {
     pub states: ServiceStates,
     pub notified: Option<SystemTime>,
-    pub disabled_services: HashSet<String>,
 }
 
 enum DispatchMode<'a> {
@@ -110,11 +106,10 @@ fn map_poll_replicas() -> Vec<(
 
     // Acquire states
     let states = &PROBER_STORE.read().unwrap().states;
-    let disabled_services = &PROBER_STORE.read().unwrap().disabled_services;
 
     // Map replica URLs to be probed
     for (probe_id, probe) in states.probes.iter() {
-        if !disabled_services.contains(probe_id) {
+        if probe.status != Status::Disabled {
             for (node_id, node) in probe.nodes.iter() {
                 if node.mode == Mode::Poll {
                     for (replica_id, replica) in node.replicas.iter() {
@@ -148,11 +143,10 @@ fn map_script_replicas() -> Vec<(String, String, String, String)> {
 
     // Acquire states
     let states = &PROBER_STORE.read().unwrap().states;
-    let disabled_services = &PROBER_STORE.read().unwrap().disabled_services;
 
     // Map scripts to be probed
     for (probe_id, probe) in states.probes.iter() {
-        if !disabled_services.contains(probe_id) {
+        if probe.status != Status::Disabled {
             for (node_id, node) in probe.nodes.iter() {
                 if node.mode == Mode::Script {
                     for (replica_id, replica) in node.replicas.iter() {
