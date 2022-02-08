@@ -109,7 +109,7 @@ fn map_poll_replicas() -> Vec<(
 
     // Map replica URLs to be probed
     for (probe_id, probe) in states.probes.iter() {
-        if probe.status != Status::Disabled {
+        if probe.status != Status::Maintenance {
             for (node_id, node) in probe.nodes.iter() {
                 if node.mode == Mode::Poll {
                     for (replica_id, replica) in node.replicas.iter() {
@@ -146,7 +146,7 @@ fn map_script_replicas() -> Vec<(String, String, String, String)> {
 
     // Map scripts to be probed
     for (probe_id, probe) in states.probes.iter() {
-        if probe.status != Status::Disabled {
+        if probe.status != Status::Maintenance {
             for (node_id, node) in probe.nodes.iter() {
                 if node.mode == Mode::Script {
                     for (replica_id, replica) in node.replicas.iter() {

@@ -65,16 +65,16 @@ pub fn run() {
                     .to(routes::reporter_flush),
             )
             .service(
-                web::resource("/service/disable/{service_name}")
+                web::resource("/probe/start_planned_maintenance/{probe_id}")
                     .wrap(middleware_auth.clone())
                     .guard(guard::Post())
-                    .to(routes::disable_service),
+                    .to(routes::start_planned_maintenance),
                 )
             .service(
-                web::resource("/service/enable/{service_name}")
+                web::resource("/probe/stop_planned_maintenance/{probe_id}")
                     .wrap(middleware_auth.clone())
                     .guard(guard::Post())
-                    .to(routes::enable_service),
+                    .to(routes::stop_planned_maintenance),
                 )
     })
     .workers(APP_CONF.server.workers)

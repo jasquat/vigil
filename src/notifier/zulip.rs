@@ -42,7 +42,7 @@ impl GenericNotifier for ZulipNotifier {
                 Status::Dead => " *dead* :boom:",
                 Status::Healthy => " *healthy* :check_mark:",
                 Status::Sick => " *sick* :sick:",
-                Status::Disabled => " *disabled* :sick:",
+                Status::Maintenance => " *maintenance* :sick:",
             };
 
             // Build message

@@ -87,27 +87,27 @@ async fn assets_javascripts(web::Path(file): web::Path<String>) -> Option<NamedF
     NamedFile::open(APP_CONF.assets.path.join("javascripts").join(file)).ok()
 }
 
-pub async fn disable_service(web::Path(service_name): web::Path<String>) -> HttpResponse {
+pub async fn start_planned_maintenance(web::Path(probe_id): web::Path<String>) -> HttpResponse {
     let store = &mut PROBER_STORE.write().unwrap();
-    if let Some(ref mut probe) = store.states.probes.get_mut(&service_name) {
-        probe.status = Status::Disabled;
+    if let Some(ref mut probe) = store.states.probes.get_mut(&probe_id) {
+        probe.status = Status::Maintenance;
         HttpResponse::Ok().finish()
     } else {
-        HttpResponse::BadRequest().body(format!("Could not find service named '{}'", service_name))
+        HttpResponse::BadRequest().body(format!("Could not find service named '{}'", probe_id))
     }
 }
 
-pub async fn enable_service(web::Path(service_name): web::Path<String>) -> HttpResponse {
+pub async fn stop_planned_maintenance(web::Path(probe_id): web::Path<String>) -> HttpResponse {
     let store = &mut PROBER_STORE.write().unwrap();
-    if let Some(ref mut probe) = store.states.probes.get_mut(&service_name) {
-        if probe.status == Status::Disabled {
+    if let Some(ref mut probe) = store.states.probes.get_mut(&probe_id) {
+        if probe.status == Status::Maintenance {
             probe.status = Status::Healthy;
             HttpResponse::Ok().finish()
         } else {
-            HttpResponse::BadRequest().body(format!("ERROR: Service is not currently disabled: {:?}", service_name))
+            HttpResponse::BadRequest().body(format!("ERROR: Service is not currently set to status maintenance: {:?}", probe_id))
         }
     } else {
-        HttpResponse::BadRequest().body(format!("Could not find service named '{}'", service_name))
+        HttpResponse::BadRequest().body(format!("Could not find service named '{}'", probe_id))
     }
 }
 

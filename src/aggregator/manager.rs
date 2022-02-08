@@ -209,7 +209,7 @@ fn scan_and_bump_states() -> Option<BumpedStates> {
             probe_id, probe_status
         );
 
-        if probe.status != Status::Disabled {
+        if probe.status != Status::Maintenance {
             // Bump general status with worst node status?
             if let Some(worst_status) = check_child_status(&general_status, &probe_status) {
                 general_status = worst_status;
