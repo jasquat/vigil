@@ -5,7 +5,7 @@
 // License: Mozilla Public License v2.0 (MPL v2.0)
 
 use actix_files::NamedFile;
-use actix_web::{get, web, web::Data, web::Json, HttpResponse, post};
+use actix_web::{get, web, web::Data, web::Json, HttpResponse};
 use tera::Tera;
 
 use super::context::{IndexContext, INDEX_CONFIG, INDEX_ENVIRONMENT};
@@ -86,8 +86,7 @@ async fn assets_javascripts(web::Path(file): web::Path<String>) -> Option<NamedF
     NamedFile::open(APP_CONF.assets.path.join("javascripts").join(file)).ok()
 }
 
-#[post("/service/disable/{service_name}")]
-async fn disable_service(web::Path(service_name): web::Path<String>) -> String {
+pub async fn disable_service(web::Path(service_name): web::Path<String>) -> String {
     let mut found_it = false;
     let store = &mut PROBER_STORE.write().unwrap();
     let states = &store.states;
@@ -107,8 +106,7 @@ async fn disable_service(web::Path(service_name): web::Path<String>) -> String {
     }
 }
 
-#[post("/service/enable/{service_name}")]
-async fn enable_service(web::Path(service_name): web::Path<String>) -> String {
+pub async fn enable_service(web::Path(service_name): web::Path<String>) -> String {
 	let disabled_services = &mut PROBER_STORE.write().unwrap().disabled_services;
     if disabled_services.contains(&service_name) {
         disabled_services.remove(&service_name);

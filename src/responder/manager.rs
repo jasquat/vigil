@@ -44,8 +44,6 @@ pub fn run() {
             .data(tera.clone())
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
             .service(routes::assets_javascripts)
-            .service(routes::disable_service)
-            .service(routes::enable_service)
             .service(routes::assets_stylesheets)
             .service(routes::assets_images)
             .service(routes::assets_fonts)
@@ -66,6 +64,18 @@ pub fn run() {
                     .guard(guard::Delete())
                     .to(routes::reporter_flush),
             )
+            .service(
+                web::resource("/service/disable/{service_name}")
+                    .wrap(middleware_auth.clone())
+                    .guard(guard::Post())
+                    .to(routes::disable_service),
+                )
+            .service(
+                web::resource("/service/enable/{service_name}")
+                    .wrap(middleware_auth.clone())
+                    .guard(guard::Post())
+                    .to(routes::enable_service),
+                )
     })
     .workers(APP_CONF.server.workers)
     .bind(APP_CONF.server.inet)
