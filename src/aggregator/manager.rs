@@ -183,9 +183,11 @@ fn scan_and_bump_states() -> Option<BumpedStates> {
                     probe_id, node_id, replica_id, replica_status
                 );
 
-                // Append bumped replica path?
-                if replica_status == Status::Dead {
-                    bumped_replicas.push(format!("{}:{}:{}", probe_id, node_id, replica_id));
+                if probe.status != Status::Maintenance {
+                    // Append bumped replica path?
+                    if replica_status == Status::Dead {
+                        bumped_replicas.push(format!("{}:{}:{}", probe_id, node_id, replica_id));
+                    }
                 }
 
                 replica.status = replica_status;
