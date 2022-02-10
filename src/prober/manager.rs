@@ -12,6 +12,8 @@ use std::thread;
 use std::time::{Duration, SystemTime};
 use time;
 
+use std::time::Instant;
+
 use indexmap::IndexMap;
 use ping::ping;
 use reqwest::blocking::Client;
@@ -664,20 +666,28 @@ fn dispatch_replica<'a>(mode: DispatchMode<'a>, probe_id: &str, node_id: &str, r
 
 fn dispatch_polls() {
     // Probe hosts
+    let start = Instant::now();
+
     for probe_replica in map_poll_replicas() {
-        dispatch_replica(
-            DispatchMode::Poll(
-                &probe_replica.3,
-                &probe_replica.4,
-                &probe_replica.5,
-                &probe_replica.6,
-                &probe_replica.7,
-            ),
-            &probe_replica.0,
-            &probe_replica.1,
-            &probe_replica.2,
-        );
+        thread::spawn(move || {
+            dispatch_replica(
+                DispatchMode::Poll(
+                    &probe_replica.3,
+                    &probe_replica.4,
+                    &probe_replica.5,
+                    &probe_replica.6,
+                    &probe_replica.7,
+                ),
+                &probe_replica.0,
+                &probe_replica.1,
+                &probe_replica.2,
+            )
+        });
     }
+
+    let elapsed = start.elapsed();
+    // Debug format
+    debug!("BENCHMARK: DISPATCH_POLLS TOOK: {:?}", elapsed);
 }
 
 fn dispatch_scripts() {
