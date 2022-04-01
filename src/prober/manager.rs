@@ -35,7 +35,7 @@ use crate::prober::manager::STORE as PROBER_STORE;
 use crate::prober::mode::Mode;
 use crate::APP_CONF;
 
-const PROBE_HOLD_MILLISECONDS: u64 = 250;
+const PROBE_HOLD_MILLISECONDS: u64 = 500;
 const PROBE_ICMP_TIMEOUT_SECONDS: u64 = 1;
 
 lazy_static! {
@@ -180,9 +180,7 @@ fn proceed_replica_probe_poll_with_retry(
 ) -> (Status, Option<Duration>) {
     let (mut status, mut latency, mut retry_count) = (Status::Dead, None, 0);
 
-    while retry_count < APP_CONF.metrics.poll_retry && status == Status::Dead {
-        retry_count += 1;
-
+    while retry_count <= APP_CONF.metrics.poll_retry && status == Status::Dead {
         debug!(
             "will probe replica: {:?} with retry count: {}",
             replica_url, retry_count
@@ -200,6 +198,9 @@ fn proceed_replica_probe_poll_with_retry(
 
         status = probe_results.0;
         latency = Some(probe_results.1);
+
+        // Increment retry count (for next attempt)
+        retry_count += 1;
     }
 
     (status, latency)
