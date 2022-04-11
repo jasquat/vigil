@@ -46,11 +46,15 @@ pub fn metrics_poll_http_status_healthy_below() -> u16 {
 }
 
 pub fn metrics_poll_delay_dead() -> u64 {
-    30
+    10
 }
 
 pub fn metrics_poll_delay_sick() -> u64 {
-    10
+    5
+}
+
+pub fn poll_parallelism() -> u16 {
+    2
 }
 
 pub fn metrics_push_delay_dead() -> u64 {
@@ -67,6 +71,10 @@ pub fn metrics_push_system_ram_sick_above() -> f32 {
 
 pub fn metrics_script_interval() -> u64 {
     300
+}
+
+pub fn script_parallelism() -> u16 {
+    1
 }
 
 pub fn metrics_local_delay_dead() -> u64 {

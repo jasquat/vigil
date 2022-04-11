@@ -80,6 +80,9 @@ pub struct ConfigMetrics {
     #[serde(default = "defaults::metrics_poll_delay_sick")]
     pub poll_delay_sick: u64,
 
+    #[serde(default = "defaults::poll_parallelism")]
+    pub poll_parallelism: u16,
+
     #[serde(default = "defaults::metrics_push_delay_dead")]
     pub push_delay_dead: u64,
 
@@ -91,6 +94,9 @@ pub struct ConfigMetrics {
 
     #[serde(default = "defaults::metrics_script_interval")]
     pub script_interval: u64,
+
+    #[serde(default = "defaults::script_parallelism")]
+    pub script_parallelism: u16,
 
     #[serde(default = "defaults::metrics_local_delay_dead")]
     pub local_delay_dead: u64,
