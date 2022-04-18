@@ -91,7 +91,7 @@ pub async fn start_planned_maintenance(web::Path(probe_id): web::Path<String>) -
     let store = &mut PROBER_STORE.write().unwrap();
     if let Some(ref mut probe) = store.states.probes.get_mut(&probe_id) {
         probe.status = Status::Maintenance;
-        debug!("notification for status: START PLANNED MAINTENANCE: {:?}", probe_id);
+        info!("notification for status: START PLANNED MAINTENANCE: {:?}", probe_id);
         HttpResponse::Ok().finish()
     } else {
         HttpResponse::BadRequest().body(format!("Could not find service named '{}'", probe_id))
@@ -103,7 +103,7 @@ pub async fn stop_planned_maintenance(web::Path(probe_id): web::Path<String>) ->
     if let Some(ref mut probe) = store.states.probes.get_mut(&probe_id) {
         if probe.status == Status::Maintenance {
             probe.status = Status::Healthy;
-            debug!("notification for status: STOP PLANNED MAINTENANCE: {:?}", probe_id);
+            info!("notification for status: STOP PLANNED MAINTENANCE: {:?}", probe_id);
             HttpResponse::Ok().finish()
         } else {
             HttpResponse::BadRequest().body(format!("ERROR: Service is not currently set to status maintenance: {:?}", probe_id))
