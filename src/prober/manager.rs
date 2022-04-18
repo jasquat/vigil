@@ -12,8 +12,6 @@ use std::thread;
 use std::time::{Duration, SystemTime};
 use time;
 
-use std::time::Instant;
-
 use indexmap::IndexMap;
 use ping::ping;
 use reqwest::blocking::Client;
