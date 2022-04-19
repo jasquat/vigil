@@ -117,13 +117,13 @@ You might find it convenient to run Vigil via Docker. You can find the pre-built
 First, pull the `valeriansaliou/vigil` image:
 
 ```bash
-docker pull valeriansaliou/vigil:v1.22.5
+docker pull valeriansaliou/vigil:v1.23.0
 ```
 
 Then, seed it a configuration file and run it (replace `/path/to/your/vigil/config.cfg` with the path to your configuration file):
 
 ```bash
-docker run -p 8080:8080 -v /path/to/your/vigil/config.cfg:/etc/vigil.cfg valeriansaliou/vigil:v1.22.5
+docker run -p 8080:8080 -v /path/to/your/vigil/config.cfg:/etc/vigil.cfg valeriansaliou/vigil:v1.23.0
 ```
 
 In the configuration file, ensure that:
@@ -171,12 +171,12 @@ Use the sample [config.cfg](https://github.com/valeriansaliou/vigil/blob/master/
 * `poll_http_status_healthy_below` (type: _integer_, allowed: HTTP status code, default: `400`) — HTTP status under which `poll` checks to HTTP replicas reports as `healthy`
 * `poll_delay_dead` (type: _integer_, allowed: seconds, default: `10`) — Delay after which a node in `poll` mode is to be considered `dead` (ie. check response delay)
 * `poll_delay_sick` (type: _integer_, allowed: seconds, default: `5`) — Delay after which a node in `poll` mode is to be considered `sick` (ie. check response delay)
-* `poll_parallelism` (type: _integer_, allowed: any number, default: `2`) — Maximum number of poll threads to be ran simultaneously (in case you are monitoring a lot of nodes and/or slow-replying nodes, increasing parallelism will help)
+* `poll_parallelism` (type: _integer_, allowed: any number, default: `4`) — Maximum number of poll threads to be ran simultaneously (in case you are monitoring a lot of nodes and/or slow-replying nodes, increasing parallelism will help)
 * `push_delay_dead` (type: _integer_, allowed: seconds, default: `20`) — Delay after which a node in `push` mode is to be considered `dead` (ie. time after which the node did not report)
 * `push_system_cpu_sick_above` (type: _float_, allowed: system CPU loads, default: `0.90`) — System load indice for CPU above which to consider a node in `push` mode `sick` (ie. UNIX system load)
 * `push_system_ram_sick_above` (type: _float_, allowed: system RAM loads, default: `0.90`) — System load indice for RAM above which to consider a node in `push` mode `sick` (ie. percent RAM used)
 * `script_interval` (type: _integer_, allowed: seconds, default: `300`) — Interval for which to probe nodes in `script` mode
-* `script_parallelism` (type: _integer_, allowed: any number, default: `1`) — Maximum number of script executor threads to be ran simultaneously (in case you are running a lot of scripts and/or long-running scripts, increasing parallelism will help)
+* `script_parallelism` (type: _integer_, allowed: any number, default: `2`) — Maximum number of script executor threads to be ran simultaneously (in case you are running a lot of scripts and/or long-running scripts, increasing parallelism will help)
 * `local_delay_dead` (type: _integer_, allowed: seconds, default: `40`) — Delay after which a node in `local` mode is to be considered `dead` (ie. time after which the node did not report)
 
 **[plugins]**
